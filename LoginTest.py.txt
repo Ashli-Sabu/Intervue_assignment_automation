@@ -1,0 +1,72 @@
+import org.openqa.selenium.*;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.apache.commons.io.FileUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.time.Duration;
+
+public class LoginTest {
+    public static void main(String[] args) {
+        WebDriverManager.chromedriver().setup();
+        WebDriver driver = new ChromeDriver();
+
+        String url = "https://www.intervue.io";
+        String email = "neha@intervue.io";
+        String password = "Ps@neha@123";
+
+        try {
+            driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+            driver.manage().window().maximize();
+            driver.get(url);
+
+            
+            driver.findElement(By.linkText("Login")).click();
+
+            
+            WebElement emailInput = driver.findElement(By.name("email"));
+            emailInput.clear();
+            emailInput.sendKeys(email);
+
+            
+            WebElement passwordInput = driver.findElement(By.name("password"));
+            passwordInput.clear();
+            passwordInput.sendKeys(password);
+
+            
+            passwordInput.sendKeys(Keys.RETURN);
+
+            
+            Thread.sleep(3000);
+
+            //login failure message
+            try {
+                WebElement errorMsg = driver.findElement(By.xpath("//*[contains(text(),'Invalid') or contains(text(),'invalid')]"));
+                if (errorMsg.isDisplayed()) {
+                    System.out.println("❌ Login failed. Capturing screenshot...");
+                    takeScreenshot(driver, "screenshots/login_failed.png");
+                }
+            } catch (NoSuchElementException e) {
+                System.out.println("✅ Login successful.");
+            }
+
+        } catch (Exception e) {
+            System.out.println("⚠️ Exception occurred during test execution.");
+            e.printStackTrace();
+            try {
+                takeScreenshot(driver, "screenshots/exception.png");
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+        } finally {
+            driver.quit();
+        }
+    }
+
+    public static void takeScreenshot(WebDriver driver, String filePath) throws IOException {
+        File srcFile = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+        File destFile = new File(filePath);
+        FileUtils.copyFile(srcFile, destFile);
+        System.out.println("📸 Screenshot saved at: " + filePath);
+    }
+}
